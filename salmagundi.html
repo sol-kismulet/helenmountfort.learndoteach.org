@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>salmagundi</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      height: 100vh;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    label {
+      font-size: 1.2rem;
+    }
+
+    input {
+      padding: 0.25em 0.5em;
+      font-size: 1rem;
+      font-family: inherit;
+      background: black;
+      color: white;
+      border: 1px solid #666;
+    }
+
+    button {
+      background: none;
+      border: 1px solid #666;
+      color: #ddd;
+      font-family: inherit;
+      font-size: 1.2rem;
+      padding: 0.5em 1em;
+      cursor: pointer;
+    }
+
+    .feather {
+      width: 2em;
+      height: 2em;
+    }
+
+    input[type="range"] {
+      width: 10em;
+    }
+  </style>
+</head>
+<body>
+  <div id="title" style="display:flex;align-items:center;gap:0.4rem;font-size:3rem;">
+    <span>salmagundi</span>
+    <img src="feather.svg" alt="feather" class="feather">
+  </div>
+
+  <div class="controls">
+    <div>
+      <label>start <input id="start" type="text" value="0:00" size="5"></label>
+      <label>end <input id="end" type="text" value="0:10" size="5"></label>
+    </div>
+    <div>
+      <label style="margin-right:0.5rem;">speed <span id="speed-display">1x</span></label>
+      <input id="speed" type="range" min="0.5" max="1.5" step="0.05" value="1">
+    </div>
+    <div>
+      <button id="loop-btn">loop section</button>
+      <button id="play-btn">play piece</button>
+    </div>
+  </div>
+
+  <audio id="audio" preload="auto">
+    <source src="salmagundi.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const audio = document.getElementById('audio');
+    const loopBtn = document.getElementById('loop-btn');
+    const playBtn = document.getElementById('play-btn');
+    const startInput = document.getElementById('start');
+    const endInput = document.getElementById('end');
+    const speedInput = document.getElementById('speed');
+    const speedDisplay = document.getElementById('speed-display');
+
+    audio.preservesPitch = true;
+    audio.mozPreservesPitch = true;
+    audio.webkitPreservesPitch = true;
+
+    let loopActive = false;
+    let playActive = false;
+
+    function parseTime(t) {
+      const parts = t.split(':');
+      if (parts.length === 1) return parseFloat(parts[0]) || 0;
+      return parseInt(parts[0], 10) * 60 + parseFloat(parts[1]);
+    }
+
+    let loopHandler = null;
+
+    loopBtn.addEventListener('click', () => {
+      if (!loopActive) {
+        playActive = false;
+        playBtn.textContent = 'play piece';
+        audio.pause();
+        const start = parseTime(startInput.value);
+        audio.currentTime = start;
+        loopHandler = () => {
+          const s = parseTime(startInput.value);
+          const e = parseTime(endInput.value);
+          if (audio.currentTime >= e) {
+            audio.currentTime = s;
+          }
+        };
+        audio.addEventListener('timeupdate', loopHandler);
+        audio.play();
+        loopBtn.textContent = 'stop';
+        loopActive = true;
+      } else {
+        audio.pause();
+        if (loopHandler) audio.removeEventListener('timeupdate', loopHandler);
+        loopBtn.textContent = 'loop section';
+        loopActive = false;
+      }
+    });
+
+    playBtn.addEventListener('click', () => {
+      if (!playActive) {
+        loopActive = false;
+        loopBtn.textContent = 'loop section';
+        if (loopHandler) audio.removeEventListener('timeupdate', loopHandler);
+        if (audio.paused) {
+          audio.currentTime = 0;
+        }
+        audio.play();
+        playBtn.textContent = 'stop';
+        playActive = true;
+      } else {
+        audio.pause();
+        playBtn.textContent = 'play piece';
+        playActive = false;
+      }
+    });
+
+    speedInput.addEventListener('input', () => {
+      const r = parseFloat(speedInput.value);
+      audio.playbackRate = r;
+      speedDisplay.textContent = r.toFixed(2) + 'x';
+    });
+  </script>
+</body>
+</html>
