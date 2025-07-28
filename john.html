@@ -50,65 +50,76 @@
     <button onclick="playExercise()">Play</button>
 
     <script>
-      const VF = Vex.Flow;
-      const div = document.getElementById("notation");
-      const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
+      document.addEventListener("DOMContentLoaded", () => {
+        const VF = Vex.Flow;
+        const div = document.getElementById("notation");
+        const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
 
-      renderer.resize(500, 200);
-      const context = renderer.getContext();
-      const stave = new VF.Stave(10, 40, 400);
-      stave.addClef("bass").addKeySignature("C");
-      stave.setContext(context).draw();
+        renderer.resize(500, 200);
+        const context = renderer.getContext();
+        const stave = new VF.Stave(10, 40, 400);
+        stave.addClef("bass").addKeySignature("C");
+        stave.setContext(context).draw();
 
-      const notes = [
-        new VF.StaveNote({ clef: "bass", keys: ["c/4"], duration: "8" }),
-        new VF.StaveNote({
-          clef: "bass",
-          keys: ["bb/3"],
-          duration: "8",
-        }).addAccidental(0, new VF.Accidental("b")),
-        new VF.StaveNote({ clef: "bass", keys: ["c/4"], duration: "8" }),
-        new VF.StaveNote({
-          clef: "bass",
-          keys: ["bb/3"],
-          duration: "8",
-        }).addAccidental(0, new VF.Accidental("b")),
-        new VF.StaveNote({ clef: "bass", keys: ["c/4"], duration: "8" }),
-        new VF.StaveNote({
-          clef: "bass",
-          keys: ["bb/3"],
-          duration: "8",
-        }).addAccidental(0, new VF.Accidental("b")),
-        new VF.StaveNote({ clef: "bass", keys: ["c/4"], duration: "8" }),
-        new VF.StaveNote({
-          clef: "bass",
-          keys: ["bb/3"],
-          duration: "8",
-        }).addAccidental(0, new VF.Accidental("b")),
-      ];
+        const notes = [
+          new VF.StaveNote({ clef: "bass", keys: ["c/4"], duration: "8" }),
+          new VF.StaveNote({
+            clef: "bass",
+            keys: ["bb/3"],
+            duration: "8",
+          }).addAccidental(0, new VF.Accidental("b")),
+          new VF.StaveNote({ clef: "bass", keys: ["c/4"], duration: "8" }),
+          new VF.StaveNote({
+            clef: "bass",
+            keys: ["bb/3"],
+            duration: "8",
+          }).addAccidental(0, new VF.Accidental("b")),
+          new VF.StaveNote({ clef: "bass", keys: ["c/4"], duration: "8" }),
+          new VF.StaveNote({
+            clef: "bass",
+            keys: ["bb/3"],
+            duration: "8",
+          }).addAccidental(0, new VF.Accidental("b")),
+          new VF.StaveNote({ clef: "bass", keys: ["c/4"], duration: "8" }),
+          new VF.StaveNote({
+            clef: "bass",
+            keys: ["bb/3"],
+            duration: "8",
+          }).addAccidental(0, new VF.Accidental("b")),
+        ];
 
-      const slur = new VF.StaveTie({
-        first_note: notes[0],
-        last_note: notes[7],
-        first_indices: [0],
-        last_indices: [0],
-      });
-
-      const voice = new VF.Voice({ num_beats: 4, beat_value: 4 });
-      voice.addTickables(notes);
-
-      new VF.Formatter().joinVoices([voice]).format([voice], 400);
-      voice.draw(context, stave);
-      slur.setContext(context).draw();
-
-      function playExercise() {
-        const synth = new Tone.Synth().toDestination();
-        const sequence = ["C4", "Bb3", "C4", "Bb3", "C4", "Bb3", "C4", "Bb3"];
-        const now = Tone.now();
-        sequence.forEach((note, i) => {
-          synth.triggerAttackRelease(note, "8n", now + i * 0.5);
+        const slur = new VF.StaveTie({
+          first_note: notes[0],
+          last_note: notes[7],
+          first_indices: [0],
+          last_indices: [0],
         });
-      }
+
+        const voice = new VF.Voice({ num_beats: 4, beat_value: 4 });
+        voice.addTickables(notes);
+
+        new VF.Formatter().joinVoices([voice]).format([voice], 400);
+        voice.draw(context, stave);
+        slur.setContext(context).draw();
+
+        window.playExercise = function () {
+          const synth = new Tone.Synth().toDestination();
+          const sequence = [
+            "C4",
+            "Bb3",
+            "C4",
+            "Bb3",
+            "C4",
+            "Bb3",
+            "C4",
+            "Bb3",
+          ];
+          const now = Tone.now();
+          sequence.forEach((note, i) => {
+            synth.triggerAttackRelease(note, "8n", now + i * 0.5);
+          });
+        };
+      });
     </script>
   </body>
 </html>
