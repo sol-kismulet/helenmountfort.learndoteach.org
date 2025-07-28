@@ -77,21 +77,11 @@
     slur.setContext(context).draw();
 
     function playExercise() {
-      const synth = new Tone.Sampler({
-        urls: {
-          C4: "cello-C4.mp3",
-          Bb3: "cello-Bb3.mp3"
-        },
-        release: 1,
-        baseUrl: "https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/cello/"
-      }).toDestination();
-
-      Tone.loaded().then(() => {
-        const now = Tone.now();
-        const sequence = ["C4", "Bb3", "C4", "Bb3", "C4", "Bb3", "C4", "Bb3"];
-        sequence.forEach((note, i) => {
-          synth.triggerAttackRelease(note, "8n", now + i * 0.5);
-        });
+      const synth = new Tone.Synth().toDestination();
+      const sequence = ["C4", "Bb3", "C4", "Bb3", "C4", "Bb3", "C4", "Bb3"];
+      const now = Tone.now();
+      sequence.forEach((note, i) => {
+        synth.triggerAttackRelease(note, "8n", now + i * 0.5);
       });
     }
   </script>
