@@ -85,6 +85,11 @@
         btn = document.createElement('button');
         btn.textContent = 'loop section';
         btn.className = 'loop-btn';
+        // Remove any trailing whitespace nodes so the button aligns
+        // consistently with buttons added later via JavaScript.
+        while (el.lastChild && el.lastChild.nodeType === Node.TEXT_NODE) {
+          el.removeChild(el.lastChild);
+        }
         el.appendChild(btn);
       }
       btn.dataset.index = i;
