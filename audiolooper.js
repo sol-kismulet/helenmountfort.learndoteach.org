@@ -2,7 +2,7 @@
 // Designed to be used on pages with elements:
 // #audio, #play-btn, #loops, #add-loop, #speed, #speed-display
 
-(function () {
+function AudioLooper(initialTimes = []) {
   const audio = document.getElementById('audio');
   const playBtn = document.getElementById('play-btn');
   const loopsContainer = document.getElementById('loops');
@@ -76,68 +76,76 @@
     }
   }
 
+  function createLoop(startVal, endVal) {
+    const loopDiv = document.createElement('div');
+    loopDiv.className = 'loop';
+
+    const startLabel = document.createElement('label');
+    startLabel.textContent = 'start ';
+    const startInput = document.createElement('input');
+    startInput.type = 'text';
+    startInput.size = 5;
+    startInput.className = 'start';
+    startInput.value = typeof startVal === 'number' ? formatTime(startVal) : startVal;
+    startLabel.appendChild(startInput);
+
+    const endLabel = document.createElement('label');
+    endLabel.textContent = 'end ';
+    const endInput = document.createElement('input');
+    endInput.type = 'text';
+    endInput.size = 5;
+    endInput.className = 'end';
+    endInput.value = typeof endVal === 'number' ? formatTime(endVal) : endVal;
+    endLabel.appendChild(endInput);
+
+    const loopButton = document.createElement('button');
+    loopButton.textContent = 'loop section';
+    loopButton.className = 'loop-btn';
+
+    loopDiv.appendChild(startLabel);
+    loopDiv.appendChild(endLabel);
+    loopDiv.appendChild(loopButton);
+    loopsContainer.appendChild(loopDiv);
+
+    const index = loops.length;
+    loopButton.dataset.index = index;
+    loopButton.addEventListener('click', () => handleLoopButton(index));
+    loops.push({ start: startInput, end: endInput, button: loopButton });
+  }
+
   if (loopsContainer) {
-    loops = Array.from(loopsContainer.querySelectorAll('.loop')).map((el, i) => {
-      const start = el.querySelector('.start');
-      const end = el.querySelector('.end');
-      let btn = el.querySelector('.loop-btn');
-      if (!btn) {
-        btn = document.createElement('button');
-        btn.textContent = 'loop section';
-        btn.className = 'loop-btn';
-        // Remove any trailing whitespace nodes so the button aligns
-        // consistently with buttons added later via JavaScript.
-        while (el.lastChild && el.lastChild.nodeType === Node.TEXT_NODE) {
-          el.removeChild(el.lastChild);
+    if (initialTimes.length > 0) {
+      loopsContainer.innerHTML = '';
+      initialTimes.forEach(([s, e]) => createLoop(s, e));
+    } else {
+      loops = Array.from(loopsContainer.querySelectorAll('.loop')).map((el, i) => {
+        const start = el.querySelector('.start');
+        const end = el.querySelector('.end');
+        let btn = el.querySelector('.loop-btn');
+        if (!btn) {
+          btn = document.createElement('button');
+          btn.textContent = 'loop section';
+          btn.className = 'loop-btn';
+          // Remove any trailing whitespace nodes so the button aligns
+          // consistently with buttons added later via JavaScript.
+          while (el.lastChild && el.lastChild.nodeType === Node.TEXT_NODE) {
+            el.removeChild(el.lastChild);
+          }
+          el.appendChild(btn);
         }
-        el.appendChild(btn);
-      }
-      btn.dataset.index = i;
-      btn.addEventListener('click', () => handleLoopButton(i));
-      return { start, end, button: btn };
-    });
+        btn.dataset.index = i;
+        btn.addEventListener('click', () => handleLoopButton(i));
+        return { start, end, button: btn };
+      });
+    }
   }
 
   if (addLoopBtn && loopsContainer) {
     addLoopBtn.addEventListener('click', () => {
-      const last = loops[loops.length - 1];
-      const startVal = last.end.value;
+      const startVal = loops.length ? loops[loops.length - 1].end.value : '0:00';
       const startSec = parseTime(startVal);
       const endSec = startSec + 10;
-
-      const loopDiv = document.createElement('div');
-      loopDiv.className = 'loop';
-
-      const startLabel = document.createElement('label');
-      startLabel.textContent = 'start ';
-      const startInput = document.createElement('input');
-      startInput.type = 'text';
-      startInput.size = 5;
-      startInput.className = 'start';
-      startInput.value = startVal;
-      startLabel.appendChild(startInput);
-
-      const endLabel = document.createElement('label');
-      endLabel.textContent = 'end ';
-      const endInput = document.createElement('input');
-      endInput.type = 'text';
-      endInput.size = 5;
-      endInput.className = 'end';
-      endInput.value = formatTime(endSec);
-      endLabel.appendChild(endInput);
-
-      const loopButton = document.createElement('button');
-      loopButton.textContent = 'loop section';
-      loopButton.className = 'loop-btn';
-
-      loopDiv.appendChild(startLabel);
-      loopDiv.appendChild(endLabel);
-      loopDiv.appendChild(loopButton);
-      loopsContainer.appendChild(loopDiv);
-      const index = loops.length;
-      loopButton.dataset.index = index;
-      loopButton.addEventListener('click', () => handleLoopButton(index));
-      loops.push({ start: startInput, end: endInput, button: loopButton });
+      createLoop(startVal, formatTime(endSec));
     });
   }
 
@@ -162,5 +170,7 @@
     audio.playbackRate = r;
     speedDisplay.textContent = r.toFixed(2) + 'x';
   });
-})();
+}
+
+window.AudioLooper = AudioLooper;
 
