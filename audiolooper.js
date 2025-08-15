@@ -1,10 +1,9 @@
 // Shared audio playback and looping controls
 // Designed to be used on pages with elements:
-// #audio, #loop-btn, #play-btn, #loops, #add-loop, #speed, #speed-display
+// #audio, #play-btn, #loops, #add-loop, #speed, #speed-display
 
 (function () {
   const audio = document.getElementById('audio');
-  const loopBtn = document.getElementById('loop-btn');
   const playBtn = document.getElementById('play-btn');
   const loopsContainer = document.getElementById('loops');
   const addLoopBtn = document.getElementById('add-loop');
@@ -23,7 +22,7 @@
   let loopActive = false;
   let playActive = false;
   let loopHandler = null;
-  let currentLoopIndex = 0;
+  let currentLoopIndex = null;
 
   function parseTime(t) {
     const parts = t.split(':');
@@ -38,11 +37,60 @@
   }
 
   let loops = [];
+
+  function stopLoop() {
+    audio.pause();
+    if (loopHandler) audio.removeEventListener('timeupdate', loopHandler);
+    if (currentLoopIndex !== null) {
+      loops[currentLoopIndex].button.textContent = 'loop section';
+    }
+    loopActive = false;
+    currentLoopIndex = null;
+  }
+
+  function startLoop(i) {
+    playActive = false;
+    playBtn.textContent = 'play piece';
+    audio.pause();
+    currentLoopIndex = i;
+    const start = parseTime(loops[i].start.value);
+    audio.currentTime = start;
+    loopHandler = () => {
+      const e = parseTime(loops[i].end.value);
+      if (audio.currentTime >= e) {
+        audio.currentTime = parseTime(loops[i].start.value);
+      }
+    };
+    audio.addEventListener('timeupdate', loopHandler);
+    audio.play();
+    loops[i].button.textContent = 'stop';
+    loopActive = true;
+  }
+
+  function handleLoopButton(i) {
+    if (loopActive && currentLoopIndex === i) {
+      stopLoop();
+    } else {
+      stopLoop();
+      startLoop(i);
+    }
+  }
+
   if (loopsContainer) {
-    loops = Array.from(loopsContainer.querySelectorAll('.loop')).map((el) => ({
-      start: el.querySelector('.start'),
-      end: el.querySelector('.end')
-    }));
+    loops = Array.from(loopsContainer.querySelectorAll('.loop')).map((el, i) => {
+      const start = el.querySelector('.start');
+      const end = el.querySelector('.end');
+      let btn = el.querySelector('.loop-btn');
+      if (!btn) {
+        btn = document.createElement('button');
+        btn.textContent = 'loop section';
+        btn.className = 'loop-btn';
+        el.appendChild(btn);
+      }
+      btn.dataset.index = i;
+      btn.addEventListener('click', () => handleLoopButton(i));
+      return { start, end, button: btn };
+    });
   }
 
   if (addLoopBtn && loopsContainer) {
@@ -73,45 +121,24 @@
       endInput.value = formatTime(endSec);
       endLabel.appendChild(endInput);
 
+      const loopButton = document.createElement('button');
+      loopButton.textContent = 'loop section';
+      loopButton.className = 'loop-btn';
+
       loopDiv.appendChild(startLabel);
       loopDiv.appendChild(endLabel);
+      loopDiv.appendChild(loopButton);
       loopsContainer.appendChild(loopDiv);
-      loops.push({ start: startInput, end: endInput });
+      const index = loops.length;
+      loopButton.dataset.index = index;
+      loopButton.addEventListener('click', () => handleLoopButton(index));
+      loops.push({ start: startInput, end: endInput, button: loopButton });
     });
   }
 
-  loopBtn.addEventListener('click', () => {
-    if (!loopActive) {
-      playActive = false;
-      playBtn.textContent = 'play piece';
-      audio.pause();
-      currentLoopIndex = 0;
-      const start = parseTime(loops[0].start.value);
-      audio.currentTime = start;
-      loopHandler = () => {
-        const e = parseTime(loops[currentLoopIndex].end.value);
-        if (audio.currentTime >= e) {
-          currentLoopIndex = (currentLoopIndex + 1) % loops.length;
-          audio.currentTime = parseTime(loops[currentLoopIndex].start.value);
-        }
-      };
-      audio.addEventListener('timeupdate', loopHandler);
-      audio.play();
-      loopBtn.textContent = 'stop';
-      loopActive = true;
-    } else {
-      audio.pause();
-      if (loopHandler) audio.removeEventListener('timeupdate', loopHandler);
-      loopBtn.textContent = 'loop section';
-      loopActive = false;
-    }
-  });
-
   playBtn.addEventListener('click', () => {
     if (!playActive) {
-      loopActive = false;
-      loopBtn.textContent = 'loop section';
-      if (loopHandler) audio.removeEventListener('timeupdate', loopHandler);
+      stopLoop();
       if (audio.paused) {
         audio.currentTime = 0;
       }
