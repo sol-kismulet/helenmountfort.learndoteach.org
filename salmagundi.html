@@ -66,12 +66,7 @@
   </div>
 
   <div class="controls">
-    <div id="loops">
-      <div class="loop">
-        <label>start <input class="start" type="text" value="0:00" size="5"></label>
-        <label>end <input class="end" type="text" value="0:10" size="5"></label>
-      </div>
-    </div>
+    <div id="loops"></div>
     <div>
       <button id="add-loop">+</button>
     </div>
@@ -90,6 +85,11 @@
   </audio>
 
   <script src="audiolooper.js"></script>
+  <script>
+    AudioLooper([
+      [0, 10]
+    ]);
+  </script>
   <p style="font-size:1rem;text-align:center;margin-top:auto;margin-bottom:0.5rem;color:#ccc;">For more of <em>The Naked Cello</em>'s melodies, wander over to <a href="https://helenmountfort.bandcamp.com/album/the-naked-cello">Helen Mountfort's Bandcamp</a>.</p>
 </body>
 </html>
